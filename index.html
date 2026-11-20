@@ -24,6 +24,9 @@ canvas{position:fixed;left:0;top:0;image-rendering:pixelated;image-rendering:cri
 #music{position:fixed;background:#000;border:0;cursor:pointer;padding:calc(var(--p)*3) calc(var(--p)*4);box-shadow:0 calc(var(--p)*-1) 0 #5f574f,0 var(--p) 0 #5f574f,calc(var(--p)*-1) 0 0 #5f574f,var(--p) 0 0 #5f574f;outline:none}
 #music:hover,#music:focus-visible{box-shadow:0 calc(var(--p)*-1) 0 #ffa300,0 var(--p) 0 #ffa300,calc(var(--p)*-1) 0 0 #ffa300,var(--p) 0 0 #ffa300}
 #music img{image-rendering:pixelated;display:block}
+#credit{position:fixed;display:flex;flex-direction:column;gap:calc(var(--p)*2);background:#000;padding:calc(var(--p)*3) calc(var(--p)*4);text-decoration:none;outline:none;box-shadow:0 calc(var(--p)*-1) 0 #5f574f,0 var(--p) 0 #5f574f,calc(var(--p)*-1) 0 0 #5f574f,var(--p) 0 0 #5f574f}
+#credit:hover,#credit:focus-visible{box-shadow:0 calc(var(--p)*-1) 0 #29adff,0 var(--p) 0 #29adff,calc(var(--p)*-1) 0 0 #29adff,var(--p) 0 0 #29adff;transform:translateY(calc(var(--p)*-1))}
+#credit img{image-rendering:pixelated;display:block}
 </style>
 </head>
 <body>
@@ -34,11 +37,12 @@ canvas{position:fixed;left:0;top:0;image-rendering:pixelated;image-rendering:cri
   <button class="pbtn" id="b1" data-href="keystrike-training.html"></button>
 </div>
 <button id="music" aria-label="Toggle music"></button>
+<a id="credit" href="https://www.linkedin.com/in/gyanendravyas/" target="_blank" rel="noopener noreferrer" aria-label="Built by Gyanendra Vyas - LinkedIn"></a>
 <script>
 (()=>{
 'use strict';
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-const ui=document.getElementById('ui'),crt=document.getElementById('crt'),musicBtn=document.getElementById('music');
+const ui=document.getElementById('ui'),crt=document.getElementById('crt'),musicBtn=document.getElementById('music'),credit=document.getElementById('credit');
 const C={black:'#000000',navy:'#1d2b53',plum:'#7e2553',green:'#008751',brown:'#ab5236',dgrey:'#5f574f',grey:'#c2c3c7',white:'#fff1e8',red:'#ff004d',orange:'#ffa300',yellow:'#ffec27',lime:'#00e436',blue:'#29adff',lav:'#83769c',pink:'#ff77a8',peach:'#ffccaa',deep:'#2a2f55'};
 
 /* ---------- 5x7 bitmap font ---------- */
@@ -69,13 +73,14 @@ for(const b of BTNS){
   }
   b.el.setAttribute('aria-label',b.big+' - '+b.sub);
 }
+credit.append(textImg('BUILT BY',C.lav,1),textImg('GYANENDRA',C.white,1),textImg('VYAS',C.blue,1));
 function setMusicLabel(){musicBtn.innerHTML='';musicBtn.append(textImg('MUSIC: '+(musicPref?'ON':'OFF'),musicPref?C.yellow:C.dgrey,1));sizeImgs()}
 let sel=0;
 function select(i,sound=true){sel=(i+BTNS.length)%BTNS.length;BTNS.forEach((b,j)=>b.el.classList.toggle('sel',j===sel));if(sound)SFX.blip()}
 
 /* ---------- layout ---------- */
 let s=4,W=320,H=180,groundY=160,heroX=40,titleS=3;
-function sizeImgs(){document.querySelectorAll('#ui img,#music img').forEach(img=>{img.style.width=(+img.dataset.w*s)+'px';img.style.height=(+img.dataset.h*s)+'px'})}
+function sizeImgs(){document.querySelectorAll('#ui img,#music img,#credit img').forEach(img=>{img.style.width=(+img.dataset.w*s)+'px';img.style.height=(+img.dataset.h*s)+'px'})}
 function resize(){
   s=Math.max(1,Math.floor(innerHeight/160));
   if(innerWidth/s<250)s=innerWidth/250;
@@ -87,6 +92,10 @@ function resize(){
   document.documentElement.style.setProperty('--p',s+'px');
   ui.style.top=Math.round((14+7*titleS+22)*s)+'px';
   musicBtn.style.right=(4*s)+'px';musicBtn.style.bottom=(3*s)+'px';
+  // credit: top-left beside the title when it fits, otherwise stacked above the music button
+  const titleLeft=W/2-tw('KEYSTRIKE',titleS)/2,creditW=tw('GYANENDRA',1)+8;
+  if(titleLeft>=creditW+8){credit.style.left=(4*s)+'px';credit.style.top=(4*s)+'px';credit.style.right=credit.style.bottom=''}
+  else{credit.style.right=(4*s)+'px';credit.style.bottom=(20*s)+'px';credit.style.left=credit.style.top=''}
   const p=Math.max(2,Math.round(s));
   crt.style.background=`repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) ${p-1}px,rgba(0,0,0,.25) ${p-1}px,rgba(0,0,0,.25) ${p}px)`;
   buildPlanet();sizeImgs();
@@ -379,6 +388,7 @@ musicBtn.addEventListener('click',e=>{e.stopPropagation();musicPref=!musicPref;t
 addEventListener('pointerdown',()=>{if(musicPref)startAudio()});
 addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(document.activeElement===credit&&(e.key==='Enter'||e.key===' '))return;
   const firstTouch=!Music.started&&musicPref;
   if(musicPref)startAudio();
   if(e.key==='ArrowDown'||e.key==='ArrowRight'||e.key==='s'){e.preventDefault();select(sel+1)}
