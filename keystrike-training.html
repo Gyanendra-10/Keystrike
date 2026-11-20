@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KEYSTRIKE Training Room - Typing Practice</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0c0f1f;--panel:#141a31;--panel2:#1b2242;--line:#283158;--text:#e9edf9;--dim:#8891b6;--accent:#ffa300;--good:#00e436;--bad:#ff004d;--blue:#29adff;--keytop:#252e55;--keytext:#dfe5ff;--sheet:#10142a;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;--fs:26px}
+body.light{--bg:#eceff6;--panel:#ffffff;--panel2:#f3f5fa;--line:#d3d9e8;--text:#1a2040;--dim:#66708f;--keytop:#f6f8fc;--keytext:#1a2040;--sheet:#ffffff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;min-height:100vh}
+header{display:flex;align-items:center;gap:18px;padding:12px 22px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.logo{font-family:var(--mono);font-weight:800;letter-spacing:.14em;font-size:15px;white-space:nowrap}
+.logo b{color:var(--accent)}.logo span{color:var(--dim);font-weight:500;letter-spacing:.08em}
+nav{display:flex;gap:4px;background:var(--panel2);padding:4px;border-radius:10px;border:1px solid var(--line)}
+nav button{background:none;border:0;color:var(--dim);padding:7px 14px;border-radius:7px;font:inherit;font-weight:600;cursor:pointer}
+nav button.on{background:var(--keytop);color:var(--text)}
+.spacer{flex:1}
+.btn{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#141414;border-color:var(--accent)}
+.btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+main{flex:1;display:flex;min-height:0}
+aside{width:270px;flex-shrink:0;border-right:1px solid var(--line);background:var(--panel);overflow:auto;padding:10px 10px 20px}
+aside h4{margin:16px 10px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--dim)}
+.lesson{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer;font:inherit}
+.lesson:hover{background:var(--panel2)}
+.lesson.on{background:var(--keytop);box-shadow:inset 3px 0 0 var(--accent)}
+.lesson .num{font-family:var(--mono);color:var(--dim);font-size:12px;width:20px}
+.lesson .t{flex:1}
+.lesson .best{font-family:var(--mono);font-size:11px;color:var(--good)}
+#center{flex:1;min-width:0;display:flex;flex-direction:column;padding:22px 28px 28px;gap:16px;overflow:auto}
+.lhead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.lhead h2{margin:0 0 4px;font-size:20px}
+.lhead p{margin:0;color:var(--dim);max-width:720px}
+kbd{font-family:var(--mono);background:var(--keytop);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;font-size:.92em;color:var(--text)}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 14px;min-width:92px}
+.stat .v{font-family:var(--mono);font-size:21px;font-weight:700}
+.stat .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
+.progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+.sheet{position:relative;background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:22px 28px;min-height:190px}
+.sheet-view{height:calc(var(--fs)*1.75*3);overflow:hidden;position:relative}
+.sheet-inner{position:relative;font-family:var(--mono);font-size:var(--fs);line-height:1.75;color:var(--dim);transition:transform .18s ease}
+.w{white-space:nowrap}
+.ch{position:relative;border-radius:3px}
+.ch.ok{color:var(--text)}
+.ch.ok.miss{text-decoration:underline;text-decoration-color:var(--bad);text-underline-offset:6px;text-decoration-thickness:2px}
+.ch.err{color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,transparent)}
+.ch.cur{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--text)}
+.ch.cur::after{content:'';position:absolute;left:0;right:0;bottom:3px;height:3px;background:var(--accent);border-radius:2px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.idle-note{position:absolute;right:16px;bottom:10px;font-size:12px;color:var(--dim)}
+.results{position:absolute;inset:0;background:var(--sheet);border-radius:14px;display:none;align-items:center;justify-content:center;gap:34px;padding:18px 24px;flex-wrap:wrap}
+.results.show{display:flex}
+.results .big{text-align:center}
+.results .big .v{font-family:var(--mono);font-size:54px;font-weight:800;color:var(--accent);line-height:1}
+.results .big .l{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.12em}
+.results .grid{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-size:14px}
+.results .grid span:nth-child(odd){color:var(--dim)}
+.results .grid span:nth-child(even){font-family:var(--mono);font-weight:700}
+.results .acts{display:flex;flex-direction:column;gap:8px}
+.newbest{color:var(--good);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-top:6px}
+.custom{display:none;gap:10px;align-items:flex-start}
+.custom.show{display:flex}
+.custom textarea{flex:1;min-height:70px;resize:vertical;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:14px/1.5 var(--mono)}
+.kbarea{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px 16px}
+.hint{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--dim);min-height:26px;gap:12px;flex-wrap:wrap}
+.hint b{color:var(--text)}
+.kb{position:relative;width:100%;margin:0 auto;--u:40px;user-select:none}
+.key{position:absolute;padding:calc(var(--u)*.05);cursor:pointer}
+.key.locked .cap{background:var(--blue)!important;color:#111}
+.cap{width:100%;height:100%;border-radius:calc(var(--u)*.13);background:var(--keytop);border:1px solid var(--line);border-bottom-width:calc(var(--u)*.08);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--keytext);font-family:var(--mono);font-size:calc(var(--u)*.34);line-height:1.05;transition:transform .05s,background .15s,box-shadow .15s;position:relative}
+.cap .sh{font-size:.68em;opacity:.55}
+.cap.wide{font-size:calc(var(--u)*.21);font-family:system-ui,sans-serif;letter-spacing:.02em}
+.kb.fingers .cap{background:color-mix(in srgb,var(--fc) 24%,var(--keytop));border-color:color-mix(in srgb,var(--fc) 50%,var(--line))}
+.key.bump .cap::before{content:'';position:absolute;bottom:20%;width:24%;height:2px;border-radius:2px;background:currentColor;opacity:.6}
+.kb.heat .key.t .cap{background:var(--heat);border-color:color-mix(in srgb,var(--good) 60%,var(--line))}
+.key.next .cap{box-shadow:0 0 0 2px var(--blue),0 0 calc(var(--u)*.35) color-mix(in srgb,var(--blue) 70%,transparent);animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 2px var(--blue),0 0 calc(var(--u)*.1) transparent}}
+.key.down .cap{transform:translateY(calc(var(--u)*.05));background:var(--accent)!important;color:#141414;border-bottom-width:1px;box-shadow:0 0 calc(var(--u)*.45) color-mix(in srgb,var(--accent) 65%,transparent)!important}
+.key.wrong .cap{background:var(--bad)!important;color:#fff;animation:none}
+.fbar{display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.fbar span{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--dim)}
+.fbar span i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--fc);margin-right:6px;vertical-align:0}
+.fbar span.on{background:var(--fc);color:#141414;border-color:transparent;font-weight:700}
+.fbar span.on i{background:#141414}
+.view{display:none;flex-direction:column;gap:16px}
+.view.show{display:flex}
+.testinfo{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.testinfo .stat .v{font-size:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.panel h3{margin:0 0 12px;font-size:14px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:140px;border-bottom:1px solid var(--line)}
+.bars div{flex:1;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.bars div:hover::after{content:attr(data-t);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:2px 6px;border-radius:5px;font-size:11px;white-space:nowrap;margin-bottom:4px}
+.weak{display:flex;flex-direction:column;gap:6px}
+.weak .r{display:flex;align-items:center;gap:10px}
+.weak .r kbd{width:30px;text-align:center}
+.weak .r .b{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.weak .r .b i{display:block;height:100%;background:var(--bad)}
+.weak .r span{font-family:var(--mono);font-size:12px;color:var(--dim);width:110px;text-align:right}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+td.n{font-family:var(--mono)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:1000px){.two{grid-template-columns:1fr}aside{width:220px}}
+.empty{color:var(--dim);padding:10px 0}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:10}
+.modal.show{display:flex}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 24px;width:min(600px,94vw);max-height:90vh;overflow:auto}
+.card h3{margin:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+.row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);gap:16px}
+.row:last-child{border-bottom:0}
+.row label{font-weight:600}
+.row label small{display:block;color:var(--dim);font-weight:400;font-size:12px;max-width:330px}
+select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;min-width:190px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+input[type=range]{accent-color:var(--accent);width:190px}
+.sect{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin:16px 0 0}
+</style>
+</head>
+<body>
+<header>
+  <a class="btn" href="index.html" id="backBtn">&larr; Back</a>
+  <div class="logo"><b>KEYSTRIKE</b> <span>// TRAINING ROOM</span></div>
+  <nav id="tabs">
+    <button data-v="practice" class="on">Practice</button>
+    <button data-v="test">Keyboard test</button>
+    <button data-v="progress">Progress</button>
+  </nav>
+  <div class="spacer"></div>
+  <span id="layoutTag" style="color:var(--dim);font-size:13px"></span>
+  <button class="btn" id="openSettings">Settings</button>
+  <a class="btn primary" href="keystrike.html">Play KEYSTRIKE</a>
+</header>
+<main>
+  <aside id="side"></aside>
+  <section id="center">
+    <div class="view show" id="v-practice">
+      <div class="lhead">
+        <div><h2 id="lTitle"></h2><p id="lDesc"></p></div>
+        <div style="display:flex;gap:8px"><button class="btn" id="restartBtn" title="Esc">Restart</button><button class="btn" id="newTextBtn">New text</button></div>
+      </div>
+      <div class="custom" id="customBox">
+        <textarea id="customText" placeholder="Paste or write any text you want to practise..."></textarea>
+        <button class="btn primary" id="customUse">Use this text</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v" id="sWpm">0</div><div class="l">WPM</div></div>
+        <div class="stat"><div class="v" id="sAcc">100%</div><div class="l">Accuracy</div></div>
+        <div class="stat"><div class="v" id="sErr">0</div><div class="l">Errors</div></div>
+        <div class="stat"><div class="v" id="sTime">0:00</div><div class="l">Time</div></div>
+        <div class="stat"><div class="v" id="sBest">-</div><div class="l">Best WPM</div></div>
+      </div>
+      <div class="progress"><i id="prog"></i></div>
+      <div class="sheet">
+        <div class="sheet-view"><div class="sheet-inner" id="sheet"></div></div>
+        <div class="idle-note" id="idle">Start typing, or click the keys on the keyboard below. The timer begins on your first key.</div>
+        <div class="results" id="results"></div>
+      </div>
+    </div>
+    <div class="view" id="v-test">
+      <div class="lhead"><div><h2>Keyboard test</h2><p>Press any key. It lights up on the board, and every key you have tested stays marked. Useful for checking a new keyboard or learning where keys sit.</p></div>
+      <button class="btn" id="testReset">Reset test</button></div>
+      <div class="testinfo">
+        <div class="stat"><div class="v" id="tKey">-</div><div class="l">Key (e.key)</div></div>
+        <div class="stat"><div class="v" id="tCode">-</div><div class="l">Physical code</div></div>
+        <div class="stat"><div class="v" id="tLoc">-</div><div class="l">Location</div></div>
+        <div class="stat"><div class="v" id="tFinger">-</div><div class="l">Finger</div></div>
+        <div class="stat"><div class="v" id="tCount">0</div><div class="l">Keys tested</div></div>
+      </div>
+    </div>
+    <div class="view" id="v-progress"></div>
+    <div class="kbarea" id="kbArea">
+      <div class="hint"><div id="hintText">&nbsp;</div><div id="hintSide" style="font-size:12px"></div></div>
+      <div class="kb" id="kb"></div>
+      <div class="fbar" id="fbar"></div>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="settings">
+  <div class="card">
+    <h3>Settings <button class="btn" id="closeSettings">Done</button></h3>
+    <div class="sect">Keyboard</div>
+    <div class="row"><label>Layout<small>The layout shown on screen and used for hints and lessons.</small></label><select id="s-layout"></select></div>
+    <div class="row"><label>Keyboard shape<small>ANSI is the common US shape. ISO has the tall Enter key and an extra key next to left Shift.</small></label>
+      <select id="s-shape"><option value="auto">Match the layout</option><option value="ansi">ANSI</option><option value="iso">ISO</option></select></div>
+    <div class="row"><label>Keyboard view</label><select id="s-size"><option value="compact">Main keys only</option><option value="full">Full (F-keys, arrows, numpad)</option></select></div>
+    <div class="row"><label>Input mode<small>Emulate lets you practise Dvorak, Colemak or any other layout without changing your computer's settings. Keys are translated by position.</small></label>
+      <select id="s-input"><option value="system">Use my system layout</option><option value="emulate">Emulate the selected layout</option></select></div>
+    <div class="row"><label>Finger colours<small>Tint each key by the finger that should press it.</small></label><input type="checkbox" id="s-fingers"></div>
+    <div class="row"><label>Next-key hint<small>Glow the next key to press, plus Shift when needed.</small></label><input type="checkbox" id="s-hint"></div>
+    <div class="row"><label>Show keyboard</label><input type="checkbox" id="s-showKb"></div>
+    <div class="sect">Practice</div>
+    <div class="row"><label>On a mistake</label><select id="s-errorMode"><option value="stop">Stop until I type it right</option><option value="continue">Keep going</option></select></div>
+    <div class="row"><label>Allow Backspace<small>Only used in keep-going mode.</small></label><input type="checkbox" id="s-backspace"></div>
+    <div class="row"><label>Sheet length</label><select id="s-length"><option value="short">Short</option><option value="medium">Medium</option><option value="long">Long</option></select></div>
+    <div class="row"><label>Text size</label><input type="range" id="s-fontSize" min="18" max="40" step="1"></div>
+    <div class="row"><label>Theme</label><select id="s-theme"><option value="dark">Dark</option><option value="light">Light</option></select></div>
+    <div class="row"><label>Key sounds</label><input type="checkbox" id="s-sound"></div>
+    <div class="sect">Your data</div>
+    <div class="row"><label>Progress file<small>Everything is saved in this browser automatically. Export a file to back it up or move it to another computer.</small></label>
+      <div style="display:flex;gap:6px"><button class="btn" id="exportBtn">Export</button><button class="btn" id="importBtn">Import</button></div></div>
+  </div>
+</div>
+<input type="file" id="importFile" accept=".json,application/json" style="display:none">
+
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pick=a=>a[Math.random()*a.length|0];
+const rnd=n=>Math.random()*n|0;
+const isLetter=c=>!!c&&c.toLowerCase()!==c.toUpperCase();
+const MAC=/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent);
+
+/* ---------- storage ---------- */
+const STORE_KEY='keystrike.training.v1';
+const DEF={layout:'us',shape:'auto',size:'compact',input:'system',fingers:true,hint:true,showKb:true,errorMode:'stop',backspace:true,length:'medium',fontSize:26,theme:'dark',sound:false,custom:'',lesson:'home-index'};
+function load(){let d=null;try{d=JSON.parse(localStorage.getItem(STORE_KEY))}catch(e){}d=d||{};d.settings=Object.assign({},DEF,d.settings||{});d.best=d.best||{};d.history=d.history||[];d.keyErr=d.keyErr||{};d.keyHit=d.keyHit||{};return d}
+let DB=load();let S=DB.settings;
+function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(DB))}catch(e){}}
+
+/* ---------- layouts: per row [normal, shift] ---------- */
+const NUMROW_US=["`1234567890-=","~!@#$%^&*()_+"];
+const LAYOUTS={
+  us:{name:'English (US) QWERTY',iso:false,rows:[NUMROW_US,["qwertyuiop[]\\","QWERTYUIOP{}|"],["asdfghjkl;'","ASDFGHJKL:\""],["zxcvbnm,./","ZXCVBNM<>?"]]},
+  uk:{name:'English (UK) QWERTY',iso:true,rows:[["`1234567890-=","¬!\"£$%^&*()_+"],["qwertyuiop[]","QWERTYUIOP{}"],["asdfghjkl;'#","ASDFGHJKL:@~"],["\\zxcvbnm,./","|ZXCVBNM<>?"]]},
+  dvorak:{name:'Dvorak',iso:false,rows:[["`1234567890[]","~!@#$%^&*(){}"],["',.pyfgcrl/=\\","\"<>PYFGCRL?+|"],["aoeuidhtns-","AOEUIDHTNS_"],[";qjkxbmwvz",":QJKXBMWVZ"]]},
+  colemak:{name:'Colemak',iso:false,rows:[NUMROW_US,["qwfpgjluy;[]\\","QWFPGJLUY:{}|"],["arstdhneio'","ARSTDHNEIO\""],["zxcvbkm,./","ZXCVBKM<>?"]]},
+  colemakdh:{name:'Colemak-DH',iso:false,rows:[NUMROW_US,["qwfpbjluy;[]\\","QWFPBJLUY:{}|"],["arstgmneio'","ARSTGMNEIO\""],["zxcdvkh,./","ZXCDVKH<>?"]]},
+  workman:{name:'Workman',iso:false,rows:[NUMROW_US,["qdrwbjfup;[]\\","QDRWBJFUP:{}|"],["ashtgyneoi'","ASHTGYNEOI\""],["zxmcvkl,./","ZXMCVKL<>?"]]},
+  azerty:{name:'French AZERTY',iso:true,rows:[["²&é\"'(-è_çà)="," 1234567890°+"],["azertyuiop^$","AZERTYUIOP¨£"],["qsdfghjklmù*","QSDFGHJKLM%µ"],["<wxcvbn,;:!",">WXCVBN?./§"]]},
+  qwertz:{name:'German QWERTZ',iso:true,rows:[["^1234567890ß´","°!\"§$%&/()=?`"],["qwertzuiopü+","QWERTZUIOPÜ*"],["asdfghjklöä#","ASDFGHJKLÖÄ'"],["<yxcvbnm,.-",">YXCVBNM;:_"]]}
+};
+const L=s=>s.split(' ');
+const R0=L('Backquote Digit1 Digit2 Digit3 Digit4 Digit5 Digit6 Digit7 Digit8 Digit9 Digit0 Minus Equal');
+const R1A=L('KeyQ KeyW KeyE KeyR KeyT KeyY KeyU KeyI KeyO KeyP BracketLeft BracketRight Backslash');
+const R1I=R1A.slice(0,12);
+const R2A=L('KeyA KeyS KeyD KeyF KeyG KeyH KeyJ KeyK KeyL Semicolon Quote');
+const R2I=R2A.concat('Backslash');
+const R3A=L('KeyZ KeyX KeyC KeyV KeyB KeyN KeyM Comma Period Slash');
+const R3I=['IntlBackslash'].concat(R3A);
+function buildMap(lay){
+  const map={},rev={};
+  const rows=lay.iso?[R0,R1I,R2I,R3I]:[R0,R1A,R2A,R3A];
+  rows.forEach((codes,r)=>{
+    const n=Array.from(lay.rows[r][0]),s=Array.from(lay.rows[r][1]);
+    codes.forEach((code,i)=>{
+      const nc=n[i],sc=s[i]&&s[i]!==' '?s[i]:'';
+      if(nc===undefined)return;
+      map[code]=[nc,sc];
+      if(!rev[nc])rev[nc]={code,shift:false};
+      if(sc&&!rev[sc])rev[sc]={code,shift:true};
+    });
+  });
+  rev[' ']={code:'Space',shift:false};
+  return{map,rev};
+}
+
+/* ---------- fingers ---------- */
+const FNAMES=['Left pinky','Left ring','Left middle','Left index','Right index','Right middle','Right ring','Right pinky','Thumb'];
+const FCOL=['#e06c75','#e5a15b','#e5c07b','#98c379','#56b6c2','#61afef','#c678dd','#d47fa6','#8a93a6'];
+const FINGER={};
+[[0,'Backquote Digit1 KeyQ KeyA KeyZ IntlBackslash Tab CapsLock ShiftLeft ControlLeft'],[1,'Digit2 KeyW KeyS KeyX'],[2,'Digit3 KeyE KeyD KeyC'],[3,'Digit4 Digit5 KeyR KeyT KeyF KeyG KeyV KeyB'],
+ [4,'Digit6 Digit7 KeyY KeyU KeyH KeyJ KeyN KeyM'],[5,'Digit8 KeyI KeyK Comma'],[6,'Digit9 KeyO KeyL Period'],[7,'Digit0 Minus Equal KeyP BracketLeft BracketRight Backslash Semicolon Quote Slash Enter ShiftRight Backspace ControlRight'],
+ [8,'Space AltLeft AltRight MetaLeft MetaRight']].forEach(([f,codes])=>L(codes).forEach(c=>FINGER[c]=f));
+
+/* ---------- physical geometry (units of one key) ---------- */
+function geom(iso,full){
+  const K=[];const add=(code,x,y,w=1,h=1,label)=>K.push({code,x,y,w,h,label});
+  const oy=full?1.25:0;
+  if(full){
+    add('Escape',0,0,1,1,'Esc');
+    for(let i=0;i<12;i++)add('F'+(i+1),2+i+Math.floor(i/4)*.5,0,1,1,'F'+(i+1));
+    add('PrintScreen',15.25,0,1,1,'PrtSc');add('ScrollLock',16.25,0,1,1,'ScrLk');add('Pause',17.25,0,1,1,'Pause');
+  }
+  R0.forEach((c,i)=>add(c,i,oy));add('Backspace',13,oy,2,1,'Backspace');
+  add('Tab',0,oy+1,1.5,1,'Tab');
+  (iso?R1I:R1A).forEach((c,i)=>add(c,1.5+i,oy+1,c==='Backslash'?1.5:1));
+  add('CapsLock',0,oy+2,1.75,1,'Caps Lock');
+  R2A.forEach((c,i)=>add(c,1.75+i,oy+2));
+  if(iso){add('Backslash',12.75,oy+2);add('Enter',13.75,oy+1,1.25,2,'Enter')}else add('Enter',12.75,oy+2,2.25,1,'Enter');
+  if(iso){add('ShiftLeft',0,oy+3,1.25,1,'Shift');R3I.forEach((c,i)=>add(c,1.25+i,oy+3))}
+  else{add('ShiftLeft',0,oy+3,2.25,1,'Shift');R3A.forEach((c,i)=>add(c,2.25+i,oy+3))}
+  add('ShiftRight',12.25,oy+3,2.75,1,'Shift');
+  const y4=oy+4,meta=MAC?'Cmd':'Win',alt=MAC?'Opt':'Alt';
+  add('ControlLeft',0,y4,1.25,1,'Ctrl');add('MetaLeft',1.25,y4,1.25,1,meta);add('AltLeft',2.5,y4,1.25,1,alt);add('Space',3.75,y4,6.25,1,'');
+  add('AltRight',10,y4,1.25,1,iso&&!MAC?'AltGr':alt);add('MetaRight',11.25,y4,1.25,1,meta);add('ContextMenu',12.5,y4,1.25,1,'Menu');add('ControlRight',13.75,y4,1.25,1,'Ctrl');
+  if(full){
+    const nx=15.25;
+    [['Insert','Ins'],['Home','Home'],['PageUp','PgUp']].forEach((k,i)=>add(k[0],nx+i,oy,1,1,k[1]));
+    [['Delete','Del'],['End','End'],['PageDown','PgDn']].forEach((k,i)=>add(k[0],nx+i,oy+1,1,1,k[1]));
+    add('ArrowUp',nx+1,oy+3,1,1,'↑');add('ArrowLeft',nx,oy+4,1,1,'←');add('ArrowDown',nx+1,oy+4,1,1,'↓');add('ArrowRight',nx+2,oy+4,1,1,'→');
+    const px=18.5;
+    [['NumLock','Num'],['NumpadDivide','/'],['NumpadMultiply','*'],['NumpadSubtract','-']].forEach((k,i)=>add(k[0],px+i,oy,1,1,k[1]));
+    [[7,8,9],[4,5,6],[1,2,3]].forEach((r,j)=>r.forEach((n,i)=>add('Numpad'+n,px+i,oy+1+j,1,1,String(n))));
+    add('NumpadAdd',px+3,oy+1,1,2,'+');add('NumpadEnter',px+3,oy+3,1,2,'Enter');
+    add('Numpad0',px,oy+4,2,1,'0');add('NumpadDecimal',px+2,oy+4,1,1,'.');
+  }
+  return{keys:K,w:full?22.5:15,h:oy+5};
+}
+
+/* ---------- content ---------- */
+const WORDS=`the be to of and in that have it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us is was are been has had were said did made find long down very still own here thing many life where must through much before right too old same tell part place every off home world while last show hand high small large next open seem begin help talk turn start might great play run move live hold bring write stand learn change lead watch follow stop create speak read spend grow offer remember love consider appear buy wait serve send expect build stay fall cut reach remain suggest raise pass sell require report decide pull school family group country problem story fact month lot book eye job word business issue side kind head house service friend father power hour game line end member law car city name team minute idea kid body parent face others level office door health person art history party result morning reason research girl guy moment air teacher force education foot boy age policy music market sense nation plan college interest experience effect class control care field development role effort rate heart leader light voice police mind price decision son view relationship town road arm difference value building action model season society director position player record paper space ground form event matter center couple site project activity star table need court situation cost industry figure street image phone data picture practice piece land product doctor wall worker news test movie north support technology step baby computer type attention film tree source organization hair window evidence campaign quick jump zero quiz jazz box fox wax lazy fizz vivid joke judge`.split(/\s+/);
+const NAMES='London Paris Tokyo Berlin Madrid Rome Cairo Lima Oslo Sydney Toronto Nairobi Seoul Dublin Lisbon Vienna Prague Athens Boston Monday Friday January April August October Mars Venus Jupiter Saturn Earth Orion Atlas Nova Luna Apollo English Spanish Atlantic Pacific'.split(' ');
+const SENTENCES=[
+"The quick brown fox jumps over the lazy dog.","Pack my box with five dozen liquor jugs.","Sphinx of black quartz, judge my vow.","How vexingly quick daft zebras jump.","The five boxing wizards jump quickly.",
+"Practice slowly at first and speed will follow.","Keep your eyes on the screen, not on your hands.","Every key has a home, and every finger knows the way back.","Small steps taken every day build lasting skill.","A calm mind types faster than a hurried one.",
+"The ship drifted past the moon and into the quiet dark.","Good stories are built one careful word at a time.","Rest your hands lightly and let the fingers do the work.","Accuracy first, speed second, and rhythm above all.","The river carved the canyon over a thousand years.",
+"Bright stars guided the sailors home across the sea.","She wrote the first line, deleted it, and wrote it again.","Clear goals make hard work feel lighter.","The old map showed a road that no longer existed.","Music, like typing, is mostly about steady timing.",
+"A journey of a thousand miles begins with a single step.","Well begun is half done.","The lantern swayed as the train rolled through the night.","Patience turns hard keys into easy ones.","The painter mixed blue and gold until the sky looked right."];
+const PUNCT=[
+"Wait, is that the ship? Yes, it is!","She said, \"Keep your eyes on the text.\"","It's late; the stars are out, and the engines hum.","Pack light (very light) and move fast.","Ready? Set... type!",
+"Well-made tools last; rushed ones don't.","Check the list: fuel, water, maps, and spare keys.","Is it 9:30 or 10:15? Either way, we're late!","\"Slow down,\" he said. \"Then speed up.\"","Rule one: breathe. Rule two: don't look down.",
+"The code read: x = (a + b) * 2;","Send it to hello@example.com, please.","Wow! That's 100% right.","Three things matter: rhythm, posture, and focus.","Was it fun? Hard? Both?"];
+const PARAS=[
+"Typing well is less about speed and more about trust. When your fingers know where every key lives, your eyes are free to stay on the words, and your mind is free to stay on the idea. Speed arrives quietly, as a side effect of calm and consistent practice.",
+"The station hummed in the dark between two planets. Inside, a single pilot checked the instruments, wrote a short note in the log, and watched the stars turn slowly past the window. Somewhere ahead, a signal was waiting to be answered.",
+"Every craft has its basics. A painter learns to mix colours, a musician learns scales, and a writer learns to put one clear sentence after another. Typing is a small craft, but it carries every other kind of work you do at a keyboard.",
+"Rain fell softly over the old city as the lamps came on one by one. Shopkeepers pulled down their shutters, children ran home through narrow lanes, and the smell of warm bread drifted from a bakery that never seemed to close.",
+"Start each session with the home row. Keep your wrists relaxed, your shoulders loose, and your eyes on the text. If you make a mistake, notice it, fix it, and keep moving. Ten focused minutes a day will take you further than one long, tired hour."];
+const LEN={short:16,medium:30,long:55};
+
+/* ---------- lessons ---------- */
+let MAP,GEO,keyEls={};
+const HOME=L('KeyA KeyS KeyD KeyF KeyG KeyH KeyJ KeyK KeyL Semicolon');
+const TOP=L('KeyQ KeyW KeyE KeyR KeyT KeyY KeyU KeyI KeyO KeyP');
+const BOT=L('KeyZ KeyX KeyC KeyV KeyB KeyN KeyM Comma Period Slash');
+function lettersOf(codes){const out=[];for(const c of codes){const m=MAP.map[c];if(m&&isLetter(m[0])){const l=m[0].toLowerCase();if(!out.includes(l))out.push(l)}}return out}
+const allLetters=()=>lettersOf([...TOP,...HOME,...BOT,'BracketLeft','Quote']);
+const kc=code=>{const m=MAP.map[code];return '<kbd>'+esc(m?(isLetter(m[0])?m[0].toUpperCase():m[0]):code)+'</kbd>'};
+function drill(set,n,realRatio=.55){
+  const real=WORDS.filter(w=>w.length>=2&&[...w].every(c=>set.includes(c)));
+  const out=[];
+  for(let i=0;i<n;i++){
+    if(real.length>=4&&Math.random()<realRatio)out.push(pick(real));
+    else{const len=2+rnd(4);let s='';for(let j=0;j<len;j++)s+=pick(set);out.push(s)}
+  }
+  return out.join(' ');
+}
+function sentences(list,n){const pool=list.slice().sort(()=>Math.random()-.5);const out=[];let len=0;for(const s of pool){out.push(s);len+=s.length;if(len>=n*5.5)break}return out.join(' ')}
+const cap=w=>w[0].toUpperCase()+w.slice(1);
+function weakKeys(){
+  const agg={};
+  for(const c in DB.keyHit){const k=c.toLowerCase();(agg[k]=agg[k]||{h:0,e:0}).h+=DB.keyHit[c]}
+  for(const c in DB.keyErr){const k=c.toLowerCase();(agg[k]=agg[k]||{h:0,e:0}).e+=DB.keyErr[c]}
+  return Object.entries(agg).filter(([k,v])=>k!==' '&&v.h>=5&&v.e>0).map(([k,v])=>({k,rate:v.e/v.h,e:v.e,h:v.h})).sort((a,b)=>b.rate-a.rate);
+}
+const LESSONS=[
+ {id:'home-index',group:'Foundations',title:'Home row: index fingers',desc:()=>`Rest your index fingers on ${kc('KeyF')} and ${kc('KeyJ')}, the keys with small bumps. Reach sideways for ${kc('KeyG')} and ${kc('KeyH')}, then return.`,gen:n=>drill(lettersOf(['KeyF','KeyJ','KeyG','KeyH']),n,.15)},
+ {id:'home-all',group:'Foundations',title:'Home row: all fingers',desc:()=>`Every finger stays on its home key: ${HOME.map(kc).join(' ')}. Thumbs rest on Space.`,gen:n=>drill(lettersOf(HOME),n)},
+ {id:'top',group:'Foundations',title:'Top row',desc:()=>`Reach up from home and come straight back: ${TOP.map(kc).join(' ')}.`,gen:n=>drill(lettersOf(TOP),n,.3)},
+ {id:'home-top',group:'Foundations',title:'Home + top rows',desc:()=>'Real words using only the home and top rows.',gen:n=>drill(lettersOf([...HOME,...TOP]),n,.75)},
+ {id:'bottom',group:'Foundations',title:'Bottom row',desc:()=>`Curl down from home: ${BOT.slice(0,7).map(kc).join(' ')}. Keep the wrist still.`,gen:n=>drill(lettersOf(BOT).concat(lettersOf(['KeyF','KeyJ'])),n,.3)},
+ {id:'all',group:'Foundations',title:'All letters',desc:()=>'Every letter on the board, mixed into real and practice words.',gen:n=>drill(allLetters(),n,.8)},
+ {id:'caps',group:'Shift, numbers & symbols',title:'Capital letters',desc:()=>'Hold Shift with the opposite hand to the letter. Left-hand letter, right Shift, and the other way round.',gen:n=>Array.from({length:n},()=>Math.random()<.4?pick(NAMES):cap(pick(WORDS))).join(' ')},
+ {id:'numbers',group:'Shift, numbers & symbols',title:'Number row',desc:()=>'Reach up two rows without looking. Each number belongs to the finger under it.',gen:n=>Array.from({length:n},()=>{if(Math.random()<.25)return pick(WORDS);const l=2+rnd(3);let s='';for(let i=0;i<l;i++)s+=rnd(10);return s}).join(' ')},
+ {id:'punct',group:'Shift, numbers & symbols',title:'Punctuation',desc:()=>'Commas, quotes, colons, brackets and friends inside real sentences.',gen:n=>sentences(PUNCT,n)},
+ {id:'words',group:'Words & flow',title:'Common words',desc:()=>'The most used words in English. Aim for an even rhythm, not bursts.',gen:n=>Array.from({length:n},()=>pick(WORDS)).join(' ')},
+ {id:'sentences',group:'Words & flow',title:'Sentences',desc:()=>'Full sentences with capitals and punctuation.',gen:n=>sentences(SENTENCES,n)},
+ {id:'paragraph',group:'Words & flow',title:'Paragraphs',desc:()=>'Longer passages for building stamina.',gen:n=>{const p=PARAS.slice().sort(()=>Math.random()-.5);return n>40?p[0]+' '+p[1]:p[0]}},
+ {id:'weak',group:'Personal',title:'Weak keys',desc:()=>{const w=weakKeys().filter(x=>isLetter(x.k)).slice(0,5);return w.length>=2?`Built from the keys you miss most: ${w.map(x=>'<kbd>'+esc(x.k.toUpperCase())+'</kbd>').join(' ')}.`:'Not enough data yet. Finish a few lessons and this sheet will target the keys you miss most.'},
+   gen:n=>{const top=weakKeys().filter(x=>isLetter(x.k)).slice(0,5).map(x=>x.k);if(top.length<2)return drill(allLetters(),n,.8);
+     const real=WORDS.filter(w=>top.some(c=>w.includes(c)));const home=lettersOf(HOME);
+     return Array.from({length:n},()=>{if(real.length&&Math.random()<.6)return pick(real);const l=3+rnd(3);let s='';for(let i=0;i<l;i++)s+=Math.random()<.6?pick(top):pick(home);return s}).join(' ')}},
+ {id:'custom',group:'Personal',title:'Custom text',desc:()=>'Practise anything: an email you need to write, a script, lyrics you own, notes from class.',gen:()=>S.custom||''}
+];
+
+/* ---------- elements ---------- */
+const kb=$('#kb'),sheet=$('#sheet'),results=$('#results');
+let view='practice',P=null;
+const TEST={counts:{}};
+
+/* ---------- keyboard render ---------- */
+function isoNow(){return S.shape==='auto'?LAYOUTS[S.layout].iso:S.shape==='iso'}
+function renderKeyboard(){
+  MAP=buildMap(LAYOUTS[S.layout]);GEO=geom(isoNow(),S.size==='full');
+  kb.innerHTML='';keyEls={};
+  kb.style.aspectRatio=GEO.w+' / '+GEO.h;kb.style.maxWidth=(GEO.w*64)+'px';
+  for(const k of GEO.keys){
+    const el=document.createElement('div');el.className='key';el.dataset.code=k.code;
+    el.style.left=(k.x/GEO.w*100)+'%';el.style.top=(k.y/GEO.h*100)+'%';el.style.width=(k.w/GEO.w*100)+'%';el.style.height=(k.h/GEO.h*100)+'%';
+    const f=FINGER[k.code];el.style.setProperty('--fc',f!=null?FCOL[f]:'transparent');
+    const capEl=document.createElement('div');capEl.className='cap';
+    const m=MAP.map[k.code];
+    if(m){const[n,s]=m;if(isLetter(n)&&s===n.toUpperCase())capEl.innerHTML=`<span class="nm">${esc(s)}</span>`;else capEl.innerHTML=`<span class="sh">${esc(s)}</span><span class="nm">${esc(n)}</span>`}
+    else{if(!(k.label&&k.label.length<=1))capEl.classList.add('wide');capEl.textContent=k.label??''}
+    if(k.code==='KeyF'||k.code==='KeyJ')el.classList.add('bump');
+    el.appendChild(capEl);kb.appendChild(el);(keyEls[k.code]=keyEls[k.code]||[]).push(el);
+  }
+  kb.classList.toggle('fingers',!!S.fingers);
+  sizeKb();refreshHeat();
+  $('#fbar').innerHTML=[0,1,2,3,8,4,5,6,7].map(i=>`<span data-f="${i}" style="--fc:${FCOL[i]}"><i></i>${FNAMES[i]}</span>`).join('');
+  $('#layoutTag').textContent=LAYOUTS[S.layout].name+(S.input==='emulate'?' (emulated)':'');
+}
+function sizeKb(){if(GEO)kb.style.setProperty('--u',(kb.clientWidth/GEO.w)+'px')}
+new ResizeObserver(sizeKb).observe(kb);
+function keyClass(code,cls,on){(keyEls[code]||[]).forEach(el=>el.classList.toggle(cls,on))}
+function flashWrong(code){keyClass(code,'wrong',true);setTimeout(()=>keyClass(code,'wrong',false),200)}
+function refreshHeat(){
+  kb.classList.toggle('heat',view==='test');
+  for(const code in keyEls){const n=TEST.counts[code]||0;keyEls[code].forEach(el=>{el.classList.toggle('t',view==='test'&&n>0);el.style.setProperty('--heat',`color-mix(in srgb, var(--good) ${Math.min(80,28+n*12)}%, var(--keytop))`)})}
+}
+
+/* ---------- hint ---------- */
+function setFinger(f){document.querySelectorAll('#fbar span').forEach(s=>s.classList.toggle('on',f!=null&&+s.dataset.f===f))}
+function updateHint(){
+  document.querySelectorAll('.key.next').forEach(el=>el.classList.remove('next'));
+  const ht=$('#hintText'),hs=$('#hintSide');
+  if(view!=='practice'||!P){setFinger(null);return}
+  if(P.finished){ht.innerHTML='Sheet complete.';hs.textContent='Enter for the next lesson, Esc to repeat';setFinger(null);return}
+  const exp=P.chars[P.pos];const r=MAP.rev[exp];
+  hs.textContent=S.input==='emulate'?'Emulating '+LAYOUTS[S.layout].name:'Using your system layout';
+  if(!r){ht.innerHTML=`Next: <b>${esc(exp)}</b> is not on the ${esc(LAYOUTS[S.layout].name)} layout.`;setFinger(null);return}
+  const f=FINGER[r.code];
+  let shiftCode=null;if(r.shift)shiftCode=f!=null&&f<=3?'ShiftRight':'ShiftLeft';
+  if(S.hint){keyClass(r.code,'next',true);if(shiftCode)keyClass(shiftCode,'next',true)}
+  const label=exp===' '?'Space':exp;
+  ht.innerHTML=`Next key <kbd>${esc(label)}</kbd> &nbsp;<b>${f!=null?FNAMES[f]:''}</b>${shiftCode?` &nbsp;+ ${shiftCode==='ShiftRight'?'right':'left'} Shift (${shiftCode==='ShiftRight'?'right':'left'} pinky)`:''}`;
+  setFinger(f);
+}
+
+/* ---------- sidebar ---------- */
+function renderSide(){
+  let html='',g='';
+  LESSONS.forEach((l,i)=>{
+    if(l.group!==g){g=l.group;html+=`<h4>${esc(g)}</h4>`}
+    const b=DB.best[l.id];
+    html+=`<button class="lesson${P&&P.lesson.id===l.id?' on':''}" data-id="${l.id}"><span class="num">${String(i+1).padStart(2,'0')}</span><span class="t">${esc(l.title)}</span>${b?`<span class="best">${b.wpm} wpm</span>`:''}</button>`;
+  });
+  $('#side').innerHTML=html;
+}
+$('#side').addEventListener('click',e=>{const b=e.target.closest('.lesson');if(b)startLesson(b.dataset.id)});
+
+/* ---------- practice ---------- */
+function startLesson(id){
+  const lesson=LESSONS.find(l=>l.id===id)||LESSONS[0];
+  S.lesson=lesson.id;persist();
+  let txt=lesson.gen(LEN[S.length]||30)||'';
+  txt=txt.replace(/\s+/g,' ').trim();
+  if(!txt)txt='Paste your own text in the box above, then press Use this text.';
+  P={lesson,chars:Array.from(txt),pos:0,status:[],flag:[],started:false,t0:0,t1:0,ok:0,keys:0,errors:0,finished:false,errKeys:{}};
+  $('#lTitle').textContent=lesson.title;$('#lDesc').innerHTML=lesson.desc();
+  $('#customBox').classList.toggle('show',lesson.id==='custom');
+  if(lesson.id==='custom')$('#customText').value=S.custom||'';
+  const b=DB.best[lesson.id];$('#sBest').textContent=b?b.wpm:'-';
+  results.classList.remove('show');$('#idle').style.display='';
+  renderSheet();renderSide();updateStats();updateHint();
+}
+function renderSheet(){
+  sheet.innerHTML='';P.spans=[];let wEl=null;
+  const frag=document.createDocumentFragment();
+  P.chars.forEach(ch=>{
+    const s=document.createElement('span');
+    if(ch===' '){s.className='ch sp';s.textContent=' ';wEl=null;frag.appendChild(s)}
+    else{if(!wEl){wEl=document.createElement('span');wEl.className='w';frag.appendChild(wEl)}s.className='ch';s.textContent=ch;wEl.appendChild(s)}
+    P.spans.push(s);
+  });
+  sheet.appendChild(frag);sheet.style.transform='translateY(0)';
+  updateCursor();
+}
+function setSpan(i,cls){const s=P.spans[i];if(s)s.className='ch'+(P.chars[i]===' '?' sp':'')+(cls?' '+cls:'')}
+function updateCursor(){
+  const old=sheet.querySelector('.cur');if(old)old.classList.remove('cur');
+  const cur=P.spans[P.pos];
+  if(cur){cur.classList.add('cur');const lh=parseFloat(getComputedStyle(sheet).lineHeight)||40;const top=cur.offsetTop;const line=Math.round(top/lh);sheet.style.transform=`translateY(${-Math.max(0,line-1)*lh}px)`}
+  $('#prog').style.width=(P.pos/P.chars.length*100)+'%';
+}
+function liveStats(){
+  const end=P.finished?P.t1:performance.now();
+  const secs=P.started?(end-P.t0)/1000:0;
+  const wpm=secs>1?Math.round(P.ok/5/(secs/60)):0;
+  const acc=P.keys?Math.round((P.keys-P.errors)*100/P.keys):100;
+  return{secs,wpm,acc};
+}
+function fmtTime(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function updateStats(){
+  if(!P)return;const st=liveStats();
+  $('#sWpm').textContent=st.wpm;$('#sAcc').textContent=st.acc+'%';$('#sErr').textContent=P.errors;$('#sTime').textContent=fmtTime(st.secs);
+}
+setInterval(()=>{if(P&&P.started&&!P.finished)updateStats()},200);
+
+function onPracticeKey(e,ch){
+  if(P.finished){
+    if(e.key==='Enter'){e.preventDefault();nextLesson()}
+    else if(e.key==='Escape'){e.preventDefault();startLesson(P.lesson.id)}
+    return;
+  }
+  if(e.key==='Escape'){e.preventDefault();startLesson(P.lesson.id);return}
+  if(e.key==='Backspace'){
+    e.preventDefault();
+    if(S.errorMode==='continue'&&S.backspace&&P.pos>0){P.pos--;if(P.status[P.pos]==='ok')P.ok--;P.status[P.pos]=undefined;setSpan(P.pos,'');updateCursor();updateHint()}
+    return;
+  }
+  if(e.key==='Tab'){e.preventDefault();return}
+  if(ch==null)return;
+  e.preventDefault();
+  if(e.repeat)return;
+  if(!P.started){P.started=true;P.t0=performance.now();$('#idle').style.display='none'}
+  const exp=P.chars[P.pos];
+  P.keys++;DB.keyHit[exp]=(DB.keyHit[exp]||0)+1;
+  if(ch===exp){
+    P.status[P.pos]='ok';P.ok++;setSpan(P.pos,P.flag[P.pos]?'ok miss':'ok');P.pos++;sound(true);
+  }else{
+    P.errors++;DB.keyErr[exp]=(DB.keyErr[exp]||0)+1;P.errKeys[exp]=(P.errKeys[exp]||0)+1;
+    flashWrong(e.code);sound(false);
+    if(S.errorMode==='stop'){P.flag[P.pos]=true;setSpan(P.pos,'err cur');updateStats();return}
+    P.status[P.pos]='err';setSpan(P.pos,'err');P.pos++;
+  }
+  if(P.pos>=P.chars.length)finish();else{updateCursor();updateHint()}
+  updateStats();
+}
+function finish(){
+  P.finished=true;P.t1=performance.now();
+  $('#prog').style.width='100%';
+  const old=sheet.querySelector('.cur');if(old)old.classList.remove('cur');
+  const st=liveStats();
+  const prev=DB.best[P.lesson.id];const isBest=!prev||st.wpm>prev.wpm;
+  if(isBest)DB.best[P.lesson.id]={wpm:st.wpm,acc:st.acc,date:Date.now()};
+  DB.history.unshift({lesson:P.lesson.id,title:P.lesson.title,wpm:st.wpm,acc:st.acc,secs:Math.round(st.secs),errors:P.errors,chars:P.chars.length,layout:S.layout,date:Date.now()});
+  DB.history=DB.history.slice(0,300);persist();
+  const miss=Object.entries(P.errKeys).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  results.innerHTML=`<div class="big"><div class="v">${st.wpm}</div><div class="l">words per minute</div>${isBest?'<div class="newbest">New personal best</div>':''}</div>
+   <div class="grid"><span>Accuracy</span><span>${st.acc}%</span><span>Time</span><span>${fmtTime(st.secs)}</span><span>Errors</span><span>${P.errors}</span><span>Characters</span><span>${P.chars.length}</span>
+   <span>Missed most</span><span>${miss.length?miss.map(([k,n])=>`<kbd>${esc(k===' '?'Space':k)}</kbd>&times;${n}`).join(' '):'none, clean run'}</span></div>
+   <div class="acts"><button class="btn primary" data-act="next">Next lesson &nbsp;<kbd>Enter</kbd></button><button class="btn" data-act="retry">Repeat &nbsp;<kbd>Esc</kbd></button></div>`;
+  results.classList.add('show');
+  updateStats();renderSide();updateHint();
+}
+results.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;if(b.dataset.act==='next')nextLesson();else startLesson(P.lesson.id)});
+function nextLesson(){const i=LESSONS.findIndex(l=>l.id===P.lesson.id);startLesson(LESSONS[(i+1)%LESSONS.length].id)}
+$('#restartBtn').onclick=()=>startLesson(P.lesson.id);
+$('#newTextBtn').onclick=()=>startLesson(P.lesson.id);
+$('#customUse').onclick=()=>{S.custom=$('#customText').value;persist();$('#customText').blur();startLesson('custom')};
+
+/* ---------- sound ---------- */
+let AC=null;
+function sound(ok){
+  if(!S.sound)return;
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return}}
+  if(AC.state==='suspended')AC.resume();
+  const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();
+  o.type=ok?'triangle':'square';o.frequency.setValueAtTime(ok?1300+Math.random()*250:130,t);
+  g.gain.setValueAtTime(ok?.05:.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+(ok?.035:.13));
+  o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.16);
+}
+
+/* ---------- key resolution ---------- */
+function resolveChar(e){
+  const altGr=e.getModifierState&&e.getModifierState('AltGraph');
+  if(!altGr&&(e.ctrlKey||e.metaKey||e.altKey))return null;
+  if(e.isComposing||e.key==='Dead')return null;
+  if(S.input==='emulate'&&!altGr){
+    if(e.code==='Space')return ' ';
+    const m=MAP.map[e.code];
+    if(m){let sh=e.shiftKey;if(isLetter(m[0])&&e.getModifierState&&e.getModifierState('CapsLock'))sh=!sh;return sh?(m[1]||m[0]):m[0]}
+  }
+  return e.key&&Array.from(e.key).length===1?e.key:null;
+}
+
+/* ---------- mouse: click the on-screen keys to type ---------- */
+let vShift=false,vCaps=false;
+const NUMPAD={Numpad0:'0',Numpad1:'1',Numpad2:'2',Numpad3:'3',Numpad4:'4',Numpad5:'5',Numpad6:'6',Numpad7:'7',Numpad8:'8',Numpad9:'9',NumpadDecimal:'.',NumpadAdd:'+',NumpadSubtract:'-',NumpadMultiply:'*',NumpadDivide:'/'};
+function setShift(on){vShift=on;keyClass('ShiftLeft','locked',on);keyClass('ShiftRight','locked',on)}
+kb.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.key');if(!el)return;e.preventDefault();
+  const code=el.dataset.code;
+  keyClass(code,'down',true);setTimeout(()=>keyClass(code,'down',false),130);
+  if(code==='ShiftLeft'||code==='ShiftRight'){setShift(!vShift);if(view==='test')onTestKey({key:'Shift',code,location:code==='ShiftLeft'?1:2});return}
+  if(code==='CapsLock'){vCaps=!vCaps;keyClass('CapsLock','locked',vCaps);if(view==='test')onTestKey({key:'CapsLock',code,location:0});return}
+  let ch=null,key=code;
+  const m=MAP.map[code];
+  if(code==='Space'){ch=' ';key=' '}
+  else if(m){let sh=vShift;if(isLetter(m[0])&&vCaps)sh=!sh;ch=sh?(m[1]||m[0]):m[0];key=ch}
+  else if(NUMPAD[code]){ch=NUMPAD[code];key=ch}
+  else key=({Backspace:'Backspace',Enter:'Enter',NumpadEnter:'Enter',Tab:'Tab',Escape:'Escape'})[code]||el.textContent||code;
+  if(ch!==null&&vShift)setShift(false);
+  const fake={key,code,repeat:false,location:code.startsWith('Numpad')?3:0,preventDefault(){}};
+  if(view==='practice'&&P)onPracticeKey(fake,ch);
+  else if(view==='test')onTestKey(fake);
+});
+
+/* ---------- keyboard test ---------- */
+const LOCS=['Standard','Left','Right','Numpad'];
+function onTestKey(e){
+  const c=e.code||'Unidentified';
+  TEST.counts[c]=(TEST.counts[c]||0)+1;
+  $('#tKey').textContent=e.key===' '?'Space':e.key;
+  $('#tCode').textContent=c;
+  $('#tLoc').textContent=LOCS[e.location]||'-';
+  const f=FINGER[c];$('#tFinger').textContent=f!=null?FNAMES[f]:'-';setFinger(f);
+  const total=Object.keys(keyEls).length,done=Object.keys(TEST.counts).filter(k=>keyEls[k]).length;
+  $('#tCount').textContent=done+' / '+total;
+  const m=MAP.map[c];
+  $('#hintText').innerHTML=m?`On ${esc(LAYOUTS[S.layout].name)} this key types <kbd>${esc(m[0])}</kbd>${m[1]?` and with Shift <kbd>${esc(m[1])}</kbd>`:''}`:'&nbsp;';
+  refreshHeat();
+}
+$('#testReset').onclick=()=>{TEST.counts={};$('#tCount').textContent='0';['#tKey','#tCode','#tLoc','#tFinger'].forEach(s=>$(s).textContent='-');refreshHeat()};
+
+/* ---------- progress view ---------- */
+function renderProgress(){
+  const h=DB.history;
+  const last10=h.slice(0,10);
+  const avg=a=>a.length?Math.round(a.reduce((s,x)=>s+x,0)/a.length):0;
+  const bestW=h.reduce((m,x)=>Math.max(m,x.wpm),0);
+  const totalSecs=h.reduce((s,x)=>s+(x.secs||0),0);
+  const recent=h.slice(0,30).reverse();const maxW=Math.max(10,...recent.map(x=>x.wpm));
+  const weak=weakKeys().slice(0,10);const maxR=weak.length?weak[0].rate:1;
+  $('#v-progress').innerHTML=`
+   <div class="lhead"><div><h2>Progress</h2><p>Saved in this browser. Export a backup from Settings.</p></div><button class="btn danger" id="resetAll">Reset all progress</button></div>
+   <div class="cards">
+     <div class="stat"><div class="v">${h.length}</div><div class="l">Sheets finished</div></div>
+     <div class="stat"><div class="v">${avg(last10.map(x=>x.wpm))}</div><div class="l">Avg WPM (last 10)</div></div>
+     <div class="stat"><div class="v">${bestW}</div><div class="l">Best WPM</div></div>
+     <div class="stat"><div class="v">${avg(last10.map(x=>x.acc))}%</div><div class="l">Avg accuracy</div></div>
+     <div class="stat"><div class="v">${fmtTime(totalSecs)}</div><div class="l">Time practised</div></div>
+   </div>
+   <div class="panel"><h3>Speed over your last ${recent.length} sheets</h3>${recent.length?`<div class="bars">${recent.map(x=>`<div style="height:${Math.max(2,x.wpm/maxW*100)}%" data-t="${x.wpm} wpm, ${x.acc}% - ${esc(x.title)}"></div>`).join('')}</div>`:'<div class="empty">Finish a practice sheet to see your chart.</div>'}</div>
+   <div class="two">
+     <div class="panel"><h3>Keys you miss most</h3>${weak.length?`<div class="weak">${weak.map(x=>`<div class="r"><kbd>${esc(x.k)}</kbd><div class="b"><i style="width:${x.rate/maxR*100}%"></i></div><span>${Math.round(x.rate*100)}% (${x.e}/${x.h})</span></div>`).join('')}</div>`:'<div class="empty">No misses recorded yet.</div>'}</div>
+     <div class="panel"><h3>Best per lesson</h3><table><tr><th>Lesson</th><th>WPM</th><th>Acc</th></tr>${LESSONS.map(l=>{const b=DB.best[l.id];return `<tr><td>${esc(l.title)}</td><td class="n">${b?b.wpm:'-'}</td><td class="n">${b?b.acc+'%':'-'}</td></tr>`}).join('')}</table></div>
+   </div>
+   <div class="panel"><h3>Recent sessions</h3>${h.length?`<table><tr><th>When</th><th>Lesson</th><th>Layout</th><th>WPM</th><th>Acc</th><th>Time</th></tr>${h.slice(0,15).map(x=>`<tr><td>${new Date(x.date).toLocaleString()}</td><td>${esc(x.title)}</td><td>${esc((LAYOUTS[x.layout]||{}).name||x.layout)}</td><td class="n">${x.wpm}</td><td class="n">${x.acc}%</td><td class="n">${fmtTime(x.secs||0)}</td></tr>`).join('')}</table>`:'<div class="empty">Nothing yet.</div>'}</div>`;
+  $('#resetAll').onclick=()=>{if(confirm('Delete all practice history, bests and key stats? Settings are kept.')){DB.best={};DB.history=[];DB.keyErr={};DB.keyHit={};persist();renderProgress();renderSide()}};
+}
+
+/* ---------- views ---------- */
+function setView(v){
+  view=v;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  ['practice','test','progress'].forEach(x=>$('#v-'+x).classList.toggle('show',x===v));
+  $('#side').style.display=v==='practice'?'':'none';
+  $('#kbArea').style.display=v==='progress'||(!S.showKb&&v==='practice')?'none':'';
+  if(v==='progress')renderProgress();
+  if(v==='test'){$('#hintText').innerHTML='Press any key.';$('#hintSide').textContent='';}
+  refreshHeat();updateHint();sizeKb();
+}
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setView(b.dataset.v)});
+
+/* ---------- global keys ---------- */
+const modalOpen=()=>$('#settings').classList.contains('show');
+const inField=t=>t&&t.closest&&t.closest('input,textarea,select');
+addEventListener('keydown',e=>{
+  if(modalOpen()){if(e.key==='Escape')closeSettings();return}
+  if(inField(e.target))return;
+  keyClass(e.code,'down',true);
+  if(view==='practice'&&P)onPracticeKey(e,resolveChar(e));
+  else if(view==='test'){
+    if(!/^F\d+$/.test(e.code))e.preventDefault();
+    onTestKey(e);
+  }
+});
+addEventListener('keyup',e=>{
+  keyClass(e.code,'down',false);
+  if(view==='test'&&e.code==='PrintScreen'&&!TEST.counts.PrintScreen)onTestKey(e);
+});
+addEventListener('blur',()=>document.querySelectorAll('.key.down').forEach(el=>el.classList.remove('down')));
+document.addEventListener('click',e=>{const b=e.target.closest('button,a');if(b&&!b.closest('.modal')&&!b.closest('#customBox'))setTimeout(()=>{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()},0)});
+
+/* ---------- settings ---------- */
+const sel=$('#s-layout');sel.innerHTML=Object.entries(LAYOUTS).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('');
+const FIELDS=['layout','shape','size','input','fingers','hint','showKb','errorMode','backspace','length','fontSize','theme','sound'];
+function fillSettings(){for(const f of FIELDS){const el=$('#s-'+f);if(el.type==='checkbox')el.checked=!!S[f];else el.value=S[f]}}
+function applyLook(){document.body.classList.toggle('light',S.theme==='light');document.documentElement.style.setProperty('--fs',S.fontSize+'px')}
+for(const f of FIELDS){
+  const el=$('#s-'+f);
+  el.addEventListener(el.type==='range'?'input':'change',()=>{
+    S[f]=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.value;persist();
+    if(f==='theme'||f==='fontSize'){applyLook();if(P)updateCursor();return}
+    if(['layout','shape','size','input','fingers'].includes(f))renderKeyboard();
+    if(f==='layout'||f==='length'||f==='errorMode')startLesson(S.lesson);
+    if(f==='showKb')setView(view);
+    updateHint();
+  });
+}
+function openSettings(){fillSettings();$('#settings').classList.add('show')}
+function closeSettings(){$('#settings').classList.remove('show');document.activeElement&&document.activeElement.blur&&document.activeElement.blur()}
+$('#openSettings').onclick=openSettings;$('#closeSettings').onclick=closeSettings;
+$('#settings').addEventListener('click',e=>{if(e.target.id==='settings')closeSettings()});
+$('#exportBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(Object.assign({app:'keystrike-training',version:1},DB),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='keystrike-training-progress.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+};
+$('#importBtn').onclick=()=>$('#importFile').click();
+$('#importFile').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  f.text().then(t=>{const d=JSON.parse(t);if(!d||typeof d!=='object'||!d.settings)throw 0;
+    DB={settings:Object.assign({},DEF,d.settings),best:d.best||{},history:d.history||[],keyErr:d.keyErr||{},keyHit:d.keyHit||{}};S=DB.settings;persist();
+    fillSettings();applyLook();renderKeyboard();startLesson(S.lesson);alert('Progress imported.')}).catch(()=>alert('That file could not be read.'));
+  e.target.value='';
+});
+
+/* ---------- boot ---------- */
+applyLook();renderKeyboard();startLesson(S.lesson);setView('practice');
+window.__KT={get P(){return P},startLesson,setView,get MAP(){return MAP}};
+})();
+</script>
+</body>
+</html>
