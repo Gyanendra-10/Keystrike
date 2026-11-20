@@ -5,7 +5,8 @@
 <title>KEYSTRIKE - Retro Typing Shooter</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-html,body{margin:0;height:100%;background:#000;overflow:hidden}
+html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#kbd{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;border:0;padding:0;margin:0;font-size:16px;color:transparent;background:transparent;caret-color:transparent;pointer-events:none}
 body{display:flex;align-items:center;justify-content:center}
 #wrap{position:relative;line-height:0}
 canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
@@ -20,6 +21,7 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
 <body>
 <div id="wrap"><canvas id="c" width="480" height="270"></canvas><div id="crt"></div><button id="back" aria-label="Back to home"></button></div>
 <input type="file" id="file" accept=".json,application/json">
+<input type="text" id="kbd" aria-label="Type here" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="text" enterkeyhint="go" tabindex="-1">
 <script>
 (()=>{
 'use strict';
@@ -36,7 +38,10 @@ function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(save))}catc
 
 /* ---------- display scaling ---------- */
 function resize(){
-  const s=Math.min(innerWidth/W,innerHeight/H);
+  // on phones the on-screen keyboard shrinks the visual viewport: fit the game into what is left
+  const vv=window.visualViewport,vw=vv?vv.width:innerWidth,vh=vv?vv.height:innerHeight;
+  document.body.style.height=vh+'px';
+  const s=Math.min(vw/W,vh/H);
   const k=s>=1?Math.floor(s):s;
   cv.style.width=W*k+'px';cv.style.height=H*k+'px';
   const p=Math.max(2,Math.round(k));
@@ -45,6 +50,7 @@ function resize(){
   SCALE=k;if(typeof buildBack==='function'&&FONT.A)buildBack();
 }
 addEventListener('resize',resize);
+if(window.visualViewport){visualViewport.addEventListener('resize',resize);visualViewport.addEventListener('scroll',()=>scrollTo(0,0))}
 
 /* ---------- 5x7 bitmap font ---------- */
 const FONT_SRC={
@@ -553,7 +559,8 @@ function renderHelp(){
     ['A WORD THAT REACHES YOU COSTS ONE LIFE.',C.red],
     ['WORDS GET LONGER AND FASTER EACH LEVEL.',C.white],
     ['EVERY 5TH LEVEL GIVES A BONUS LIFE.',C.lime],
-    ['ESC OR THE PAUSE ICON PAUSES THE GAME.',C.grey]];
+    ['ESC OR THE PAUSE ICON PAUSES THE GAME.',C.grey],
+    ['ON A PHONE YOUR KEYBOARD OPENS WHEN YOU PLAY.',C.blue]];
   lines.forEach((l,i)=>text(l[0],W/2,52+i*14,l[1],1,'center'));
   button('BACK TO MENU',W/2,H-24,()=>{state='menu';Sound.move()});
 }
@@ -579,6 +586,8 @@ function render(){
   }
   const show=state==='menu'||state==='scores'||state==='help';
   if(show!==backShown){backShown=show;backBtn.style.display=show?'block':'none'}
+  if(!wantsKbd()&&document.activeElement===kbd)kbd.blur(); // hide the phone keyboard on pause, game over, menus
+  if(wantsKbd()&&state==='play'&&document.activeElement!==kbd&&Math.floor(T*2)%2===0)text('TAP TO OPEN KEYBOARD',W/2,H-10,C.yellow,1,'center',C.black);
   cv.style.cursor=mouse.in&&hitAt(mouse.x,mouse.y)?'pointer':'default';
   // music: duck when paused, muffle during slow-mo
   const lvl=!save.music?0:state==='pause'?.1:state==='over'||state==='name'?.18:.3;
@@ -612,11 +621,34 @@ fileInput.addEventListener('change',()=>{
 /* ---------- input ---------- */
 function startGame(){newGame();state='play';Sound.select()}
 function goHome(){Sound.select();setTimeout(()=>location.href='index.html',120)}
+/* phone keyboard: a hidden text field is focused while the game wants typing.
+   Letters arrive through its input event (phone keyboards often send keydown as "Unidentified").
+   The field always holds one space so Backspace still produces an input event. */
+const kbd=document.getElementById('kbd'),KSENT=' ';
+const isTouch=()=>matchMedia('(pointer:coarse)').matches||'ontouchstart' in window;
+const wantsKbd=()=>(state==='play'||state==='name')&&isTouch();
+function resetKbd(){kbd.value=KSENT;try{kbd.setSelectionRange(1,1)}catch(_){}}
+function showKbd(force){
+  if(!wantsKbd())return;
+  if(force&&document.activeElement===kbd)kbd.blur(); // re-open after the user dismissed it
+  resetKbd();kbd.focus({preventScroll:true});
+}
+kbd.addEventListener('input',()=>{
+  const v=kbd.value;resetKbd();Sound.init();
+  if(v==='')return handleKey('Backspace',false);
+  for(const ch of v.replace(/\s/g,''))handleKey(ch,false);
+});
 addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey)return;
-  Sound.init();
   const k=e.key;
+  // characters typed into the phone field are handled by its input event
+  if(e.target===kbd&&(e.isComposing||k==='Unidentified'||k==='Process'||k==='Backspace'||k.length===1))return;
+  Sound.init();
   if(k===' '||k==='Backspace'||k==='Tab'||k.startsWith('Arrow')||k.length===1)e.preventDefault();
+  if(e.target===kbd&&k==='Enter')e.preventDefault();
+  handleKey(k,e.repeat);
+});
+function handleKey(k,repeat){
   switch(state){
     case 'menu':{
       const n=menuItems().length;
@@ -627,7 +659,7 @@ addEventListener('keydown',e=>{
       break;}
     case 'play':
       if(k==='Escape'){state='pause';pauseIdx=0;Sound.move()}
-      else if(!e.repeat&&/^[a-zA-Z]$/.test(k))typeChar(k.toLowerCase());
+      else if(!repeat&&/^[a-zA-Z]$/.test(k))typeChar(k.toLowerCase());
       break;
     case 'pause':
       if(k==='Escape'){state='play'}
@@ -653,11 +685,14 @@ addEventListener('keydown',e=>{
       if(k==='Escape'||k==='Enter'){state='menu';Sound.move()}
       break;
   }
-});
+}
 function toLogical(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}}
 cv.addEventListener('pointermove',e=>{const p=toLogical(e);mouse.x=p.x;mouse.y=p.y;mouse.in=true;const h=hitAt(p.x,p.y);if(h&&h.hover)h.hover()});
 cv.addEventListener('pointerleave',()=>{mouse.in=false});
-cv.addEventListener('pointerdown',e=>{e.preventDefault();Sound.init();const p=toLogical(e);mouse.x=p.x;mouse.y=p.y;mouse.in=true;const h=hitAt(p.x,p.y);if(h&&h.click)h.click()});
+let kbdWasOn=false;
+cv.addEventListener('pointerdown',e=>{e.preventDefault();kbdWasOn=document.activeElement===kbd;Sound.init();const p=toLogical(e);mouse.x=p.x;mouse.y=p.y;mouse.in=true;const h=hitAt(p.x,p.y);if(h&&h.click)h.click();showKbd(false)});
+// tapping empty space during play brings the phone keyboard back if it was closed
+cv.addEventListener('pointerup',e=>{if(!wantsKbd())return;const p=toLogical(e);showKbd(kbdWasOn&&!hitAt(p.x,p.y))});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 backBtn.addEventListener('click',e=>{e.stopPropagation();Sound.init();goHome()});
 const autoPause=()=>{if(state==='play'){state='pause';pauseIdx=0}};
