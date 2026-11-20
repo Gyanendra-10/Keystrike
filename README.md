@@ -1,3 +1,5 @@
+Play it HERE - 
+
 # KEYSTRIKE
 
 I never properly learned to type. I've been using a keyboard for years, but always with a few fingers and a lot of looking down. So I made myself a small game to fix that, and figured it might help anyone else who's in the same spot.
